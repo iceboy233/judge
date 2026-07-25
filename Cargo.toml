@@ -6,7 +6,10 @@ name = "judge"
 edition = "2021"
 
 [dependencies]
+ouroboros = "0.18"
+positioned-io = "0.3"
 tempfile = "3"
+zip = "8"
 
 [profile.release]
 lto = "fat"
