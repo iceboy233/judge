@@ -5,6 +5,9 @@ resolver = "2"
 name = "judge"
 edition = "2021"
 
+[dependencies]
+tempfile = "3"
+
 [profile.release]
 lto = "fat"
 codegen-units = 1
