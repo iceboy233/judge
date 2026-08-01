@@ -312,6 +312,7 @@ dependencies = [
 name = "judge"
 version = "0.0.0"
 dependencies = [
+ "libc",
  "positioned-io",
  "tempfile",
  "zip",

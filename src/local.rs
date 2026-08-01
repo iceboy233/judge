@@ -2,12 +2,12 @@ use std::{
     ffi::OsStr,
     fs,
     io::{self, PipeReader, PipeWriter},
-    process::{Command, ExitStatus, Stdio},
+    process::{Command, Stdio},
 };
 
 use tempfile::TempDir;
 
-use crate::traits::Workspace;
+use crate::{traits::Workspace, wait::{WaitExt, WaitResult}};
 
 pub struct LocalWorkspace {
     base_dir: TempDir,
@@ -34,7 +34,7 @@ impl Workspace for LocalWorkspace {
         stdin: Option<PipeReader>,
         stdout: Option<PipeWriter>,
         stderr: Option<PipeWriter>,
-    ) -> io::Result<ExitStatus> {
+    ) -> io::Result<WaitResult> {
         let mut cmd = Command::new(program);
         cmd.args(args);
         cmd.current_dir(self.base_dir.path());
@@ -42,7 +42,7 @@ impl Workspace for LocalWorkspace {
         cmd.stdout(stdout.map_or_else(Stdio::null, Stdio::from));
         cmd.stderr(stderr.map_or_else(Stdio::null, Stdio::from));
         let mut child = cmd.spawn()?;
-        let status = child.wait()?;
-        Ok(status)
+        let result = child.wait_with_usage()?;
+        Ok(result)
     }
 }

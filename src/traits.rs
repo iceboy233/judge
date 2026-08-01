@@ -2,8 +2,9 @@ use std::{
     ffi::OsStr,
     io::{self, PipeReader, PipeWriter},
     path::Path,
-    process::ExitStatus,
 };
+
+use crate::wait::WaitResult;
 
 pub trait Workspace {
     fn write_file(&self, path: impl AsRef<Path>, contents: &[u8]) -> io::Result<()>;
@@ -15,5 +16,5 @@ pub trait Workspace {
         stdin: Option<PipeReader>,
         stdout: Option<PipeWriter>,
         stderr: Option<PipeWriter>,
-    ) -> io::Result<ExitStatus>;
+    ) -> io::Result<WaitResult>;
 }
