@@ -5,7 +5,6 @@ use std::{
     sync::Arc,
 };
 
-use ouroboros::self_referencing;
 use positioned_io::{RandomAccessFile, SizeCursor};
 use zip::{read::ZipFile, ZipArchive};
 
@@ -23,13 +22,9 @@ pub struct Case {
     score: u64,
 }
 
-#[self_referencing]
 pub struct PackageStream {
-    archive: ZipArchive<FileCursor>,
-
-    #[borrows(mut archive)]
-    #[not_covariant]
-    file: ZipFile<'this, FileCursor>,
+    file: ZipFile<'static, FileCursor>,
+    _archive: Box<ZipArchive<FileCursor>>,
 }
 
 impl Package {
@@ -57,15 +52,16 @@ impl Package {
     }
 
     fn open_file(&self, file_number: usize) -> io::Result<PackageStream> {
-        PackageStreamTryBuilder {
-            archive: self.archive.clone(),
-            file_builder: |archive_ref| {
-                archive_ref
-                    .by_index(file_number)
-                    .map_err(|e| io::Error::new(io::ErrorKind::Other, e))
-            },
-        }
-        .try_build()
+        let mut archive = Box::new(self.archive.clone());
+        let archive_ref: &'static mut ZipArchive<FileCursor> =
+            unsafe { std::mem::transmute(archive.as_mut()) };
+        let file = archive_ref
+            .by_index(file_number)
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+        Ok(PackageStream {
+            file,
+            _archive: archive,
+        })
     }
 }
 
@@ -85,7 +81,7 @@ impl Case {
 
 impl Read for PackageStream {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.with_file_mut(|file| file.read(buf))
+        self.file.read(buf)
     }
 }
 
