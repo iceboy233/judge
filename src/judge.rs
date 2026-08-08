@@ -13,7 +13,6 @@ pub struct JudgeResult {
     pub memory_usage_bytes: u64,
 }
 
-#[derive(Debug)]
 pub enum Verdict {
     Accepted,
     WrongAnswer,
