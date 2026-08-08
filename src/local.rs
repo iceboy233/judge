@@ -1,13 +1,16 @@
 use std::{
     ffi::OsStr,
-    fs,
-    io::{self, PipeReader, PipeWriter},
+    fs::File,
+    io::{self, PipeReader, PipeWriter, Read},
     process::{Command, Stdio},
 };
 
 use tempfile::TempDir;
 
-use crate::{traits::Workspace, wait::{WaitExt, WaitResult}};
+use crate::{
+    traits::Workspace,
+    wait::{WaitExt, WaitResult},
+};
 
 pub struct LocalWorkspace {
     base_dir: TempDir,
@@ -21,10 +24,15 @@ impl LocalWorkspace {
 }
 
 impl Workspace for LocalWorkspace {
-    fn write_file(&self, path: impl AsRef<std::path::Path>, contents: &[u8]) -> io::Result<()> {
+    fn write_file(
+        &self,
+        path: impl AsRef<std::path::Path>,
+        mut reader: impl Read,
+    ) -> io::Result<()> {
         let path = self.base_dir.path().join(path);
         // TODO: create dir for nested files
-        fs::write(&path, contents)
+        let mut file = File::create(&path)?;
+        io::copy(&mut reader, &mut file).map(|_| ())
     }
 
     fn run(

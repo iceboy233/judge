@@ -1,13 +1,13 @@
 use std::{
     ffi::OsStr,
-    io::{self, PipeReader, PipeWriter},
+    io::{self, PipeReader, PipeWriter, Read},
     path::Path,
 };
 
 use crate::wait::WaitResult;
 
 pub trait Workspace {
-    fn write_file(&self, path: impl AsRef<Path>, contents: &[u8]) -> io::Result<()>;
+    fn write_file(&self, path: impl AsRef<Path>, reader: impl Read) -> io::Result<()>;
 
     fn run(
         &self,
