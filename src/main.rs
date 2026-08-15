@@ -55,27 +55,25 @@ fn main() -> io::Result<()> {
     println!("{:8}{:24}{:8}{:8}", "Case", "Verdict", "Time", "Memory");
     for (index, case) in package.load_cases()?.iter().enumerate() {
         let result = judge(&package, case, &workspace, &lang.run, TokenComparator)?;
-        println!(
-            "{}",
-            CaseFormatter {
-                number: index + 1,
-                verdict: result.verdict,
-                time_usage_us: result.time_usage_us,
-                memory_usage_bytes: result.memory_usage_bytes,
-            }
-        );
+        let formatter = CaseFormatter {
+            number: index + 1,
+            verdict: result.verdict,
+            time_usage_us: result.time_usage_us,
+            memory_usage_bytes: result.memory_usage_bytes,
+        };
+        println!("{formatter}");
     }
     Ok(())
 }
 
 impl fmt::Display for CaseFormatter {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        const STYLE_OK: Style = Style::new().fg_color(Some(Color::Ansi(AnsiColor::Green)));
+        const STYLE_AC: Style = Style::new().fg_color(Some(Color::Ansi(AnsiColor::Green)));
         const STYLE_NA: Style = Style::new().fg_color(Some(Color::Ansi(AnsiColor::Red)));
 
         let number = self.number;
         let (label, style) = match self.verdict {
-            Verdict::Accepted => ("Accepted", STYLE_OK),
+            Verdict::Accepted => ("Accepted", STYLE_AC),
             Verdict::WrongAnswer => ("Wrong Answer", STYLE_NA),
             Verdict::TimeLimitExceeded => ("Time Limit Exceeded", STYLE_NA),
             Verdict::MemoryLimitExceeded => ("Memory Limit Exceeded", STYLE_NA),
@@ -83,7 +81,8 @@ impl fmt::Display for CaseFormatter {
             Verdict::SystemError => ("System Error", STYLE_NA),
         };
         let time_usage = format!("{} ms", self.time_usage_us / 1_000);
-        let memory_usage = format!("{} KB", self.memory_usage_bytes / 1024);
+        let memory_usage = format!("{} KB", self.memory_usage_bytes / 1_024);
+
         write!(
             f,
             "{number:<8}{style}{label:24}{style:#}{time_usage:8}{memory_usage:8}"
