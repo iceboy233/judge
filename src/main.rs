@@ -4,6 +4,7 @@ use anstyle::{AnsiColor, Color, Style};
 use bpaf::Bpaf;
 use judge::{
     compare::TokenComparator,
+    config::LanguageMap,
     judge::{judge, Verdict},
     local::LocalWorkspace,
     package::Package,
@@ -31,15 +32,29 @@ struct CaseFormatter {
 
 fn main() -> io::Result<()> {
     let options = options().run();
+    let lang_map = LanguageMap::load()?;
+
+    let source_ext = options
+        .source
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "Missing source extension"))?;
+    let lang = lang_map.get_by_source_ext(source_ext).ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::NotFound,
+            format!("Unsupported source extension: {source_ext}"),
+        )
+    })?;
+
     let source_file = File::open(&options.source)?;
     let workspace = LocalWorkspace::new()?;
-    workspace.write_file("a.c", source_file)?;
-    workspace.run("gcc", ["-O2", "-o", "a", "a.c"], None, None, None)?;
+    workspace.write_file(&lang.source, source_file)?;
+    workspace.run(&lang.compile, &lang.compile_args, None, None, None)?;
     let package = Package::open(&options.package)?;
 
     println!("{:8}{:24}{:8}{:8}", "Case", "Verdict", "Time", "Memory");
     for (index, case) in package.load_cases()?.iter().enumerate() {
-        let result = judge(&package, case, &workspace, "./a", TokenComparator)?;
+        let result = judge(&package, case, &workspace, &lang.run, TokenComparator)?;
         println!(
             "{}",
             CaseFormatter {

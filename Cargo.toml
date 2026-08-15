@@ -10,7 +10,9 @@ default-run = "judge"
 anstyle = "1"
 bpaf = { version = "0.9", features = ["bpaf_derive"] }
 positioned-io = "0.3"
+serde = { version = "1", features = ["derive"] }
 tempfile = "3"
+toml = "1"
 zip = "8"
 
 [target.'cfg(unix)'.dependencies]

@@ -1,0 +1,13 @@
+[c]
+compile = "gcc"
+compile_args = ["-O2", "-o", "a", "a.c"]
+source = "a.c"
+source_exts = ["c"]
+run = "./a"
+
+[cpp]
+compile = "g++"
+compile_args = ["-O2", "-o", "a", "a.cpp"]
+source = "a.cpp"
+source_exts = ["cpp", "cc", "cxx"]
+run = "./a"
