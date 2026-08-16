@@ -8,19 +8,19 @@ use judge::{
     judge::{judge, Verdict},
     local::LocalWorkspace,
     package::Package,
-    traits::Workspace,
+    traits::{Stream, Workspace},
 };
 
 #[derive(Clone, Debug, Bpaf)]
 #[bpaf(options, version)]
 struct Options {
-    /// Source file path
-    #[bpaf(short, long)]
-    source: PathBuf,
-
     /// Package file path
     #[bpaf(short, long)]
     package: PathBuf,
+
+    /// Source file path
+    #[bpaf(positional("SOURCE"))]
+    source: PathBuf,
 }
 
 struct CaseFormatter {
@@ -49,7 +49,13 @@ fn main() -> io::Result<()> {
     let source_file = File::open(&options.source)?;
     let workspace = LocalWorkspace::new()?;
     workspace.write_file(&lang.source, source_file)?;
-    workspace.run(&lang.compile, &lang.compile_args, None, None, None)?;
+    workspace.run(
+        &lang.compile,
+        &lang.compile_args,
+        Stream::Discard,
+        Stream::Discard,
+        Stream::Inherit,
+    )?;
     let package = Package::open(&options.package)?;
 
     println!("{:8}{:24}{:8}{:8}", "Case", "Verdict", "Time", "Memory");

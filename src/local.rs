@@ -2,13 +2,13 @@ use std::{
     ffi::OsStr,
     fs::File,
     io::{self, PipeReader, PipeWriter, Read},
-    process::{Command, Stdio},
+    process::Command,
 };
 
 use tempfile::TempDir;
 
 use crate::{
-    traits::Workspace,
+    traits::{Stream, Workspace},
     wait::{WaitExt, WaitResult},
 };
 
@@ -39,16 +39,16 @@ impl Workspace for LocalWorkspace {
         &self,
         program: impl AsRef<OsStr>,
         args: impl IntoIterator<Item = impl AsRef<OsStr>>,
-        stdin: Option<PipeReader>,
-        stdout: Option<PipeWriter>,
-        stderr: Option<PipeWriter>,
+        stdin: Stream<PipeReader>,
+        stdout: Stream<PipeWriter>,
+        stderr: Stream<PipeWriter>,
     ) -> io::Result<WaitResult> {
         let mut cmd = Command::new(program);
         cmd.args(args);
         cmd.current_dir(self.base_dir.path());
-        cmd.stdin(stdin.map_or_else(Stdio::null, Stdio::from));
-        cmd.stdout(stdout.map_or_else(Stdio::null, Stdio::from));
-        cmd.stderr(stderr.map_or_else(Stdio::null, Stdio::from));
+        cmd.stdin(stdin);
+        cmd.stdout(stdout);
+        cmd.stderr(stderr);
         let mut child = cmd.spawn()?;
         let result = child.wait_with_usage()?;
         Ok(result)

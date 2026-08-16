@@ -3,7 +3,7 @@ use std::io::{self, pipe};
 use crate::{
     compare::{Comparator, CompareResult},
     package::{Case, Package},
-    traits::Workspace,
+    traits::{Stream, Workspace},
     wait::WaitResult,
 };
 
@@ -49,9 +49,9 @@ where
     let wait_result = workspace.run(
         program,
         [""; 0],
-        Some(stdin_reader),
-        Some(stdout_writer),
-        None,
+        Stream::Pipe(stdin_reader),
+        Stream::Pipe(stdout_writer),
+        Stream::Discard,
     )?;
     let compare_result = stdout_thread.join().unwrap().unwrap();
     stdin_thread.join().unwrap().unwrap();
