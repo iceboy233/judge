@@ -2,6 +2,7 @@ use std::{
     ffi::OsStr,
     fs::File,
     io::{self, PipeReader, PipeWriter, Read},
+    path::Path,
     process::Command,
 };
 
@@ -24,15 +25,12 @@ impl LocalWorkspace {
 }
 
 impl Workspace for LocalWorkspace {
-    fn write_file(
-        &self,
-        path: impl AsRef<std::path::Path>,
-        mut reader: impl Read,
-    ) -> io::Result<()> {
+    fn write_file(&self, path: impl AsRef<Path>, mut reader: impl Read) -> io::Result<()> {
         let path = self.base_dir.path().join(path);
         // TODO: create dir for nested files
         let mut file = File::create(&path)?;
-        io::copy(&mut reader, &mut file).map(|_| ())
+        io::copy(&mut reader, &mut file)?;
+        Ok(())
     }
 
     fn run(

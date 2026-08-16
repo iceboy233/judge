@@ -34,14 +34,14 @@ where
     C: Comparator + Send + 'static,
 {
     let (stdin_reader, mut stdin_writer) = pipe()?;
-    let mut input = package.open_input(&case)?;
+    let mut input = package.open_input(case)?;
     let stdin_thread = std::thread::spawn(move || -> io::Result<()> {
         io::copy(&mut input, &mut stdin_writer)?;
         Ok(())
     });
 
     let (mut stdout_reader, stdout_writer) = pipe()?;
-    let mut output = package.open_output(&case)?;
+    let mut output = package.open_output(case)?;
     let stdout_thread = std::thread::spawn(move || -> io::Result<CompareResult> {
         comparator.compare(&mut output, &mut stdout_reader)
     });

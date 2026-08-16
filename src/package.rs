@@ -57,7 +57,7 @@ impl Package {
             unsafe { std::mem::transmute(archive.as_mut()) };
         let file = archive_ref
             .by_index(file_number)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+            .map_err(io::Error::other)?;
         Ok(PackageStream {
             file,
             _archive: archive,
@@ -89,7 +89,7 @@ fn parse_legacy_config<R: Read + Seek>(
     archive: &mut ZipArchive<R>,
     canonical_names: &HashMap<String, usize>,
 ) -> io::Result<Box<[Case]>> {
-    let file_number = get_file_number(&canonical_names, "config.ini")?;
+    let file_number = get_file_number(canonical_names, "config.ini")?;
     let mut lines = BufReader::new(archive.by_index(file_number)?).lines();
     let count_line = lines
         .next()
@@ -110,9 +110,8 @@ fn parse_legacy_config<R: Read + Seek>(
                 "invalid config line",
             ));
         }
-        let input_file_number = get_file_number(&canonical_names, &format!("input/{}", parts[0]))?;
-        let output_file_number =
-            get_file_number(&canonical_names, &format!("output/{}", parts[1]))?;
+        let input_file_number = get_file_number(canonical_names, &format!("input/{}", parts[0]))?;
+        let output_file_number = get_file_number(canonical_names, &format!("output/{}", parts[1]))?;
         let time_limit_us = parts[2]
             .parse::<f64>()
             .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "invalid time limit"))
